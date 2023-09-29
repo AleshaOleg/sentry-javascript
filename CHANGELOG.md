@@ -2,7 +2,77 @@
 
 ## Unreleased
 
+### Important Changes
+
+- **feat(replay): Upgrade to rrweb2**
+
+This is fully backwards compatible with prior versions of the Replay SDK. The only breaking change that we will making is to not be masking `aria-label` by default. The reason for this change is to align with our core SDK which also does not mask `aria-label`. This change also enables better support of searching by clicks.
+
+Another change that needs to be highlighted is the 13% bundle size increase. This bundle size increase is necessary to bring improved recording performance and improved replay fidelity, especially in regards to web components and iframes. We will be investigating the reduction of the bundle size in [this PR](https://github.com/getsentry/sentry-javascript/issues/8815).
+
+Here are benchmarks comparing the version 1 of rrweb to version 2
+
+| metric    | v1         | v2         |
+| --------- | ---------- | ---------- |
+| lcp       | 1486.06 ms | 1529.11 ms |
+| cls       | 0.40 ms    | 0.40 ms    |
+| fid       | 1.53 ms    | 1.50 ms    |
+| tbt       | 3207.22 ms | 3036.80 ms |
+| memoryAvg | 131.83 MB  | 124.84 MB  |
+| memoryMax | 324.8 MB   | 339.03 MB  |
+| netTx     | 282.67 KB  | 272.51 KB  |
+| netRx     | 8.02 MB    | 8.07 MB    |
+
 - "You miss 100 percent of the chances you don't take. — Wayne Gretzky" — Michael Scott
+
+## 7.72.0
+
+### Important Changes
+
+- **feat(node): App Not Responding with stack traces (#9079)**
+
+This release introduces support for Application Not Responding (ANR) errors for Node.js applications.
+These errors are triggered when the Node.js main thread event loop of an application is blocked for more than five seconds.
+The Node SDK reports ANR errors as Sentry events and can optionally attach a stacktrace of the blocking code to the ANR event.
+
+To enable ANR detection, import and use the `enableANRDetection` function from the `@sentry/node` package before you run the rest of your application code.
+Any event loop blocking before calling `enableANRDetection` will not be detected by the SDK.
+
+Example (ESM):
+
+```ts
+import * as Sentry from "@sentry/node";
+
+Sentry.init({
+  dsn: "___PUBLIC_DSN___",
+  tracesSampleRate: 1.0,
+});
+
+await Sentry.enableANRDetection({ captureStackTrace: true });
+// Function that runs your app
+runApp();
+```
+
+Example (CJS):
+
+```ts
+const Sentry = require("@sentry/node");
+
+Sentry.init({
+  dsn: "___PUBLIC_DSN___",
+  tracesSampleRate: 1.0,
+});
+
+Sentry.enableANRDetection({ captureStackTrace: true }).then(() => {
+  // Function that runs your app
+  runApp();
+});
+```
+
+### Other Changes
+
+- fix(nextjs): Filter `RequestAsyncStorage` locations by locations that webpack will resolve (#9114)
+- fix(replay): Ensure `replay_id` is not captured when session is expired (#9109)
 
 ## 7.71.0
 
